@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#FDFBF7" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="手帐" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<title>手帐</title>
+<style>
+:root{
+  --paper:#FDFBF7; --card:#FFFFFF;
+  --line:#EDE7DA; --line2:#E3DCCB;
+  --ink:#2C2C2A; --ink2:#6B6A63; --ink3:#A9A499;
+  --accent:#C4704F; --accent-soft:#FAECE7; --accent-line:#E9CDBD;
+  --green:#5F7F6A; --green-soft:#EAF0E7; --green-line:#B7C9B3;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:#F1EDE3;color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;background:var(--paper);display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(0,0,0,.04)}
+
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(253,251,247,.94);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:13px 14px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.tb-main{display:flex;align-items:center;gap:8px;min-width:0}
+.arrow{width:28px;height:28px;flex:none;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--ink2);font-size:15px;line-height:1;display:grid;place-items:center;padding:0}
+.arrow:active{background:var(--accent-soft)}
+.tb-title{font-family:"Songti SC","Noto Serif SC",Georgia,serif;font-size:18px;font-weight:500;margin:0;letter-spacing:.5px;white-space:nowrap;cursor:pointer;border-bottom:1px dashed transparent}
+.tb-title:active{border-bottom-color:var(--line2)}
+.tb-sub{margin:0;font-size:11px;color:var(--ink3);letter-spacing:.3px}
+.tb-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
+.save{font-size:10px;color:var(--ink3)}
+.pill{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--line2);background:#fff;color:var(--ink2);font-family:inherit}
+
+.view{flex:1;padding:12px 14px calc(88px + env(safe-area-inset-bottom));overflow-x:hidden}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px}
+.card-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;margin:0 0 6px;flex-wrap:wrap}
+.card-h em{font-style:normal;font-weight:400;font-size:11px;color:var(--ink3)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
+.dot.g{background:var(--green)}
+.hint{font-size:11.5px;color:var(--ink3);margin:6px 0 0;line-height:1.5}
+.warn{font-size:11.5px;color:var(--accent);margin:0;line-height:1.5}
+.rowline{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:0 4px 12px}
+.mini{flex:none;font-size:11.5px;color:var(--accent);background:none;border:0;padding:0;margin-top:5px;text-decoration:underline;text-underline-offset:3px}
+.lbl-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-top:4px}
+.lbl-grid input{font-size:14px;padding:9px 0 7px}
+.cal-head .pill{flex:none}
+
+input,textarea,button{font-family:inherit;color:inherit}
+input,textarea{background:transparent;border:0;outline:0;width:100%;-webkit-appearance:none}
+.line{border-bottom:1px dashed var(--line2);padding:7px 0 5px;font-size:15px;border-radius:0;display:block}
+.line:focus{border-bottom-color:var(--accent)}
+::placeholder{color:#C4BFB2}
+.ruled{
+  line-height:27px;font-size:15px;padding:0;border:0;resize:none;display:block;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 26px,var(--line) 26px 27px);
+  background-attachment:local;
+}
+
+.row{display:flex;align-items:center;gap:10px;padding:2px 0}
+.row .line{flex:1;min-width:0}
+.chk{width:20px;height:20px;flex:none;border-radius:6px;border:1.4px solid #C9C3B4;background:#fff;display:grid;place-items:center;padding:0}
+.chk.on{background:var(--accent);border-color:var(--accent)}
+.chk.on::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.done-txt{color:var(--ink3);text-decoration:line-through}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding-top:2px}
+.chip{font-size:12.5px;padding:6px 13px;border-radius:99px;border:1px solid var(--line2);background:#fff;color:var(--ink2)}
+.chip.on{background:var(--green-soft);border-color:var(--green-line);color:#3F5B48}
+.chip.add{border-style:dashed;color:var(--ink3);padding:6px 12px}
+
+.photo-box{border:1px dashed #D9D3C6;border-radius:10px;background:#FCFAF6;min-height:92px;display:grid;place-items:center;overflow:hidden;margin-top:4px}
+.photo-box img{width:100%;display:block;border-radius:9px}
+.addphoto{border:0;background:none;color:var(--ink3);font-size:12.5px;padding:26px 0;width:100%}
+
+.moods{display:flex;gap:9px;margin-top:10px;align-items:center}
+.moods span{font-size:11px;color:var(--ink3);margin-right:2px}
+.mood{width:27px;height:27px;border-radius:50%;border:1.4px solid #C9C3B4;background:#fff;font-size:11px;color:var(--ink3);padding:0;display:grid;place-items:center}
+.mood.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+.gcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 10px;min-height:106px;display:flex;flex-direction:column}
+.glabel{font-size:10.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:3px}
+.gcell textarea{flex:1;font-size:13px;line-height:1.75;resize:none;padding:0;border:0}
+.gcell.center{background:var(--accent-soft);border-color:var(--accent-line);justify-content:center;align-items:center;text-align:center;gap:4px}
+.gcell.center input{font-size:14px;text-align:center;font-family:"Songti SC",Georgia,serif;padding:4px 0;border:0;border-bottom:1px dashed var(--accent-line)}
+
+.segs{display:flex;gap:6px;margin-bottom:12px}
+.seg{flex:1;padding:8px 0;font-size:12.5px;border-radius:9px;border:1px solid var(--line2);background:#fff;color:var(--ink2)}
+.seg.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.qcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px}
+.qnum{font-size:10.5px;color:var(--accent);letter-spacing:1.5px;margin-bottom:4px}
+.kr{display:flex;gap:8px;align-items:baseline}
+.krno{font-size:10px;color:var(--ink3);flex:none;width:24px;letter-spacing:.5px}
+.meta{display:flex;gap:8px;align-items:baseline}
+.meta label{font-size:10.5px;color:var(--ink3);flex:none;width:54px}
+
+.wgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:6px 0 4px}
+.wday{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+.wday.today{border-color:var(--accent);background:#FFFBF8}
+.wd{font-size:10px;color:var(--ink3)}
+.wnum{font-size:13px;color:var(--ink);line-height:1.2}
+.wdot{width:5px;height:5px;border-radius:50%;background:#E3DCCB}
+.wdot.on{background:var(--accent)}
+
+.tier{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;padding:8px 0;border-bottom:1px dashed var(--line);color:var(--ink3)}
+.tier:last-of-type{border-bottom:0}
+.tier.ok{color:var(--green)}
+.tier b{font-weight:500}
+
+.btn{width:100%;padding:11px;border-radius:11px;border:1px solid var(--line2);background:#fff;font-size:13.5px;color:var(--ink)}
+.btn:active{opacity:.7}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.4}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+
+.tabbar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;display:flex;z-index:30;
+  background:rgba(255,255,255,.97);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  padding:5px 6px calc(4px + env(safe-area-inset-bottom));
+}
+.tab{flex:1;border:0;background:none;padding:8px 0 4px;font-size:13px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit}
+.tab.on{color:var(--accent)}
+.tab i{width:4px;height:4px;border-radius:50%;background:transparent}
+.tab.on i{background:var(--accent)}
+
+.cal{position:fixed;inset:0;z-index:40;background:rgba(44,44,42,.26);display:flex;align-items:flex-end;justify-content:center}
+.cal[hidden]{display:none}
+.cal-panel{width:100%;max-width:480px;background:var(--paper);border-radius:18px 18px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom))}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:14px;font-weight:500}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);font-size:10.5px;color:var(--ink3);text-align:center;margin-bottom:4px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-d{height:40px;border:0;background:none;border-radius:9px;font-size:13px;color:var(--ink);font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
+.cal-d.sel{background:var(--accent);color:#fff}
+.cal-d.td{border:1px solid var(--accent-line)}
+.cal-d i{width:4px;height:4px;border-radius:50%;background:var(--accent);display:block}
+.cal-d.sel i{background:#fff}
+
+.syncrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);padding:7px 2px;border-bottom:1px dashed var(--line)}
+.syncrow a{color:var(--accent);text-decoration:none}
+
+@page{size:A5;margin:10mm}@media print{
+  body{background:#fff}
+  .app{max-width:none;box-shadow:none;min-height:auto}
+  .topbar,.tabbar,.no-print{display:none!important}
+  .view{padding:0;overflow:visible}
+  .card,.qcard,.gcell{border:1px solid #ccc;break-inside:avoid}
+  .gcell{min-height:92px}
+  .photo-box{border:1px dashed #999}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="tb-main">
+      <button class="arrow" id="prevBtn" aria-label="上一个">‹</button>
+      <div>
+        <h1 class="tb-title" id="tbTitle">—</h1>
+        <p class="tb-sub" id="tbSub"></p>
+      </div>
+      <button class="arrow" id="nextBtn" aria-label="下一个">›</button>
+    </div>
+    <div class="tb-right">
+      <button class="pill" id="todayBtn">回今天</button>
+      <span class="save" id="saveState">已保存</span>
+    </div>
+  </header>
+
+  <main class="view" id="view"></main>
+
+  <nav class="tabbar">
+    <button class="tab" data-tab="year">年<i></i></button>
+    <button class="tab" data-tab="quarter">季<i></i></button>
+    <button class="tab on" data-tab="day">日<i></i></button>
+    <button class="tab" data-tab="week">周<i></i></button>
+  </nav>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" hidden />
+
+<div class="cal" id="cal" hidden>
+  <div class="cal-panel">
+    <div class="cal-head">
+      <button class="arrow" data-act="calPrev" aria-label="上个月">‹</button>
+      <span id="calTitle">—</span>
+      <button class="arrow" data-act="calNext" aria-label="下个月">›</button>
+    </div>
+    <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<div class="cal" id="labelPanel" hidden>
+  <div class="cal-panel">
+    <div class="cal-head">
+      <span>九宫格名称</span>
+      <button class="pill" data-act="closeLabels">完成</button>
+    </div>
+    <p class="hint" style="margin:0 0 6px">改成你自己的八个方向，改完对所有年份生效。</p>
+    <div class="lbl-grid" id="lblGrid"></div>
+    <button class="btn" data-act="resetLabels" style="margin-top:14px;font-size:12.5px;padding:9px">恢复默认名称</button>
+  </div>
+</div>
+
+<div class="cal" id="syncPanel" hidden>
+  <div class="cal-panel">
+    <div class="cal-head">
+      <span>云同步</span>
+      <button class="pill" data-act="closeSync">关闭</button>
+    </div>
+    <p class="hint" style="margin:0 0 4px">数据存放在你自己的 GitHub Gist 里。手机、电脑各设置一次，之后「推送 / 拉取」。</p>
+    <div id="syncBody"></div>
+  </div>
+</div>
+
+<input type="file" id="importInput" accept=".json,application/json" hidden />
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "journal-v1";
+  var WD = ["周日","周一","周二","周三","周四","周五","周六"];
+  var $ = function(s){ return document.querySelector(s); };
+  var pad = function(n){ return String(n).padStart(2,"0"); };
+
+  function dkey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function parseKey(k){ var p = k.split("-").map(Number); return new Date(p[0], p[1]-1, p[2]); }
+  function monday(d){
+    var x = new Date(d); x.setHours(0,0,0,0);
+    var w = (x.getDay()+6)%7; x.setDate(x.getDate()-w); return x;
+  }
+  function isoWeek(d){
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate()+4-day);
+    var y0 = Date.UTC(t.getUTCFullYear(), 0, 1);
+    return Math.ceil((((t - y0)/86400000)+1)/7);
+  }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  /* ---------- state ---------- */
+  var DEFAULT_LABELS = ["工作 · 学业","身体 · 健康","金钱 · 理财","学习 · 成长",
+                        "心情 · 内在","家人 · 关系","朋友 · 社交","兴趣 · 体验"];
+  var LEGACY = ["work","health","money","learn","mind","family","friends","hobby"];
+
+  var state = load();
+
+  function load(){
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){ s = null; }
+    if(!s || typeof s !== "object") s = {};
+    s.years = s.years || {};
+    s.days = s.days || {};
+    s.weeks = s.weeks || {};
+    s.habits = (s.habits && s.habits.length) ? s.habits : ["喝水","运动","阅读","早睡"];
+    if(!s.gridLabels || s.gridLabels.length !== 8) s.gridLabels = DEFAULT_LABELS.slice();
+    s.meta = s.meta || {};
+    return s;
+  }
+
+  function newGoal(){ return {title:"", krs:["","",""], invest:"", block:"", fix:""}; }
+
+  function yearState(y){
+    var k = String(y);
+    if(!state.years[k]) state.years[k] = {theme:"", grid:{}, quarters:{}};
+    var o = state.years[k];
+    o.grid = o.grid || {};
+    o.quarters = o.quarters || {};
+    return o;
+  }
+  function quarterState(y, q){
+    var ys = yearState(y);
+    if(!ys.quarters[q]) ys.quarters[q] = {goals:[newGoal(), newGoal(), newGoal()]};
+    var qs = ys.quarters[q];
+    while(qs.goals.length < 3) qs.goals.push(newGoal());
+    return qs;
+  }
+  function dayState(k){
+    var d = state.days[k];
+    if(!d){ d = {plan:["","",""], flags:[false,false,false], done:"", brk:"", habits:{}, quote:"", mood:0}; state.days[k] = d; }
+    if(!d.plan) d.plan = ["","",""];
+    if(!d.flags) d.flags = [false,false,false];
+    if(!d.habits) d.habits = {};
+    return d;
+  }
+  function weekState(k){
+    var w = state.weeks[k];
+    if(!w){ w = {tasks:["","",""], reward:"", claimed:false}; state.weeks[k] = w; }
+    if(!w.tasks) w.tasks = ["","",""];
+    return w;
+  }
+
+  /* ---------- cursor ---------- */
+  var tab = "day";
+  var cursor = new Date(); cursor.setHours(0,0,0,0);
+
+  function curKey(){ return dkey(cursor); }
+  function curY(){ return cursor.getFullYear(); }
+  function curQ(){ return Math.floor(cursor.getMonth()/3) + 1; }
+  function curWKey(){ return dkey(monday(cursor)); }
+
+  /* ---------- save ---------- */
+  var saveTimer = null;
+  function queueSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+      var d = new Date();
+      var el = $("#saveState");
+      if(el) el.textContent = "已保存 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }, 400);
+  }
+
+  /* ---------- idb ---------- */
+  var dbp = null;
+  function db(){
+    if(!window.indexedDB) return Promise.reject(new Error("no indexeddb"));
+    if(!dbp){
+      dbp = new Promise(function(res, rej){
+        var r = indexedDB.open("journal", 1);
+        r.onupgradeneeded = function(){ r.result.createObjectStore("kv"); };
+        r.onsuccess = function(){ res(r.result); };
+        r.onerror = function(){ rej(r.error); };
+      });
+    }
+    return dbp;
+  }
+  function idbSet(k, v){
+    return db().then(function(d){
+      return new Promise(function(res, rej){
+        var tx = d.transaction("kv","readwrite");
+        tx.objectStore("kv").put(v, k);
+        tx.oncomplete = res; tx.onerror = function(){ rej(tx.error); };
+      });
+    });
+  }
+  function idbGet(k){
+    return db().then(function(d){
+      return new Promise(function(res, rej){
+        var tx = d.transaction("kv","readonly");
+        var rq = tx.objectStore("kv").get(k);
+        rq.onsuccess = function(){ res(rq.result); };
+        rq.onerror = function(){ rej(rq.error); };
+      });
+    });
+  }
+  function idbDel(k){
+    return db().then(function(d){
+      return new Promise(function(res, rej){
+        var tx = d.transaction("kv","readwrite");
+        tx.objectStore("kv").delete(k);
+        tx.oncomplete = res; tx.onerror = function(){ rej(tx.error); };
+      });
+    });
+  }
+
+  /* ---------- helpers ---------- */
+  function weekChecked(mon){
+    var n = 0;
+    for(var i=0;i<7;i++){
+      var dt = new Date(mon); dt.setDate(dt.getDate()+i);
+      var d = state.days[dkey(dt)];
+      if(d && d.habits && Object.keys(d.habits).some(function(k){ return d.habits[k]; })) n++;
+    }
+    return n;
+  }
+  function recordedDays(y){
+    return Object.keys(state.days).filter(function(k){
+      if(y && k.indexOf(y + "-") !== 0) return false;
+      var d = state.days[k];
+      return d && (d.done || d.brk || d.quote || d.mood || d.hasPhoto ||
+        (d.plan && d.plan.some(Boolean)) ||
+        (d.habits && Object.keys(d.habits).some(function(x){ return d.habits[x]; })));
+    }).length;
+  }
+  function yearsWithData(){
+    var ys = Object.keys(state.years).filter(function(y){
+      var o = state.years[y] || {};
+      if(o.theme) return true;
+      var g = o.grid || {};
+      if(Object.keys(g).some(function(k){ return g[k]; })) return true;
+      var qs = o.quarters || {};
+      return Object.keys(qs).some(function(q){
+        return (qs[q].goals || []).some(function(gg){
+          return gg.title || gg.invest || gg.block || gg.fix || (gg.krs || []).some(Boolean);
+        });
+      });
+    }).map(Number);
+    if(ys.indexOf(curY()) < 0) ys.push(curY());
+    return ys.sort(function(a,b){ return a - b; });
+  }
+  function ago(ts){
+    var d = Math.floor((Date.now() - ts) / 86400000);
+    if(d <= 0) return "今天";
+    if(d === 1) return "昨天";
+    return d + " 天前";
+  }
+
+  /* ---------- views ---------- */
+  function viewDay(){
+    var k = curKey(), d = dayState(k);
+    var wk = weekState(curWKey());
+    var habits = state.habits;
+    var checked = 0;
+    for(var i=0;i<7;i++){
+      var dt = new Date(monday(cursor)); dt.setDate(dt.getDate()+i);
+      var dd = state.days[dkey(dt)];
+      if(dd && dd.habits && Object.keys(dd.habits).some(function(x){ return dd.habits[x]; })) checked++;
+    }
+
+    var h = [];
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>今日计划<em>不要忘记</em></div>');
+    var ph = ["最重要的一件","第二件","有余力再做"];
+    for(var j=0;j<3;j++){
+      var on = d.flags[j];
+      h.push('<div class="row">' +
+        '<button class="chk ' + (on?"on":"") + '" data-act="plan" data-i="' + j + '"></button>' +
+        '<input class="line ' + (on?"done-txt":"") + '" data-f="day.plan.' + j + '" value="' + esc(d.plan[j]) + '" placeholder="' + ph[j] + '">' +
+        '</div>');
+    }
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>今天干了啥 / 吃了啥 / 学了啥</div>');
+    h.push('<textarea class="ruled" style="height:81px" data-f="day.done" placeholder="流水账也行，先写下来">' + esc(d.done) + '</textarea>');
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>今天的小突破<em>快乐和勇敢的瞬间</em></div>');
+    h.push('<textarea class="ruled" style="height:54px" data-f="day.brk" placeholder="具体到一句话、一个动作，别写“还行”">' + esc(d.brk) + '</textarea>');
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot g"></i>今日坚持的一件小事</div>');
+    h.push('<div class="chips">');
+    habits.forEach(function(nm){
+      h.push('<button class="chip ' + (d.habits[nm] ? "on" : "") + '" data-act="habit" data-name="' + esc(nm) + '">' + esc(nm) + '</button>');
+    });
+    h.push('<button class="chip add" data-act="habitAdd">＋</button>');
+    h.push('</div>');
+    h.push('<p class="hint">每天同一个动作，方便打勾</p>');
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>今天的照片</div>');
+    h.push('<div class="photo-box" id="photoBox">');
+    h.push('<img id="photoImg" style="display:none" alt="今天的照片">');
+    h.push('<button class="addphoto" id="photoAdd" data-act="photoPick">＋ 拍照 / 相册</button>');
+    h.push('</div>');
+    h.push('<div id="photoTools" style="display:none;margin-top:8px" class="no-print">');
+    h.push('<button class="btn" data-act="photoDel" style="font-size:12.5px;padding:8px">删除照片</button>');
+    h.push('</div>');
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>今天印象最深的记录<em>语句 / 人 / 事</em></div>');
+    h.push('<input class="line" data-f="day.quote" value="' + esc(d.quote) + '" placeholder="只写一句，别写一段">');
+    h.push('<div class="moods"><span>心情</span>');
+    for(var m=1;m<=5;m++){
+      h.push('<button class="mood ' + (d.mood===m?"on":"") + '" data-act="mood" data-v="' + m + '">' + m + '</button>');
+    }
+    h.push('</div>');
+    h.push('</div>');
+
+    h.push('<div class="card" style="background:var(--accent-soft);border-color:var(--accent-line)">');
+    h.push('<div class="card-h" style="margin-bottom:2px"><i class="dot"></i>本周奖励</div>');
+    h.push('<p style="margin:2px 0 0;font-size:14px;color:#8A4E38">' + (wk.reward ? esc(wk.reward) : "还没定，去「周」页写一个具体的") + '</p>');
+    h.push('<p class="hint">本周打卡 ' + checked + ' / 7 天' + (wk.claimed ? " · 已兑现" : "") + '</p>');
+    h.push('</div>');
+
+    return h.join("");
+  }
+
+  function viewYear(){
+    var y = curY(), s = yearState(y), L = state.gridLabels;
+    var ph = ["例：升一级 / 考下证","例：一周三次运动","例：存下多少钱","例：读完 12 本书",
+              "例：情绪、断舍离","例：陪谁、做什么","例：认识谁、维护谁","例：去哪、试什么"];
+    var order = [0,1,2,3,"C",4,5,6,7];
+    var h = [];
+
+    h.push('<div class="chips" style="padding:0 2px 10px">');
+    yearsWithData().forEach(function(yy){
+      h.push('<button class="chip ' + (yy === y ? "on" : "") + '" data-act="pickYear" data-y="' + yy + '">' + yy + ' 年</button>');
+    });
+    h.push('<button class="chip add" data-act="pickYear" data-y="' + (y + 1) + '">＋</button>');
+    h.push('</div>');
+
+    h.push('<div class="grid9">');
+    order.forEach(function(idx){
+      if(idx === "C"){
+        h.push('<div class="gcell center">' +
+          '<span class="glabel">' + y + ' 年度主题</span>' +
+          '<input data-f="year.theme" value="' + esc(s.theme) + '" placeholder="一个词">' +
+          '</div>');
+      } else {
+        var val = s.grid["g" + idx] || s.grid[LEGACY[idx]] || "";
+        h.push('<div class="gcell">' +
+          '<span class="glabel">' + esc(L[idx]) + '</span>' +
+          '<textarea data-f="year.grid.g' + idx + '" placeholder="' + ph[idx] + '">' + esc(val) + '</textarea>' +
+          '</div>');
+      }
+    });
+    h.push('</div>');
+
+    h.push('<div class="rowline">');
+    h.push('<p class="hint" style="margin:0">写下来就算承诺。每格只放 1–2 件事，且必须能被验证。</p>');
+    h.push('<button class="mini" data-act="openLabels">改名称</button>');
+    h.push('</div>');
+
+    var lb = state.meta && state.meta.lastBackup;
+    var stale = !lb || (Date.now() - lb > 14 * 86400000);
+
+    h.push('<div class="card no-print">');
+    h.push('<div class="card-h"><i class="dot"></i>数据与备份</div>');
+    h.push('<p class="hint" style="margin:0">' + y + ' 年已记录 ' + recordedDays(y) + ' 天 · 全部 ' + recordedDays() + ' 天</p>');
+    h.push('<p class="' + (stale ? "warn" : "hint") + '" style="margin:2px 0 10px">' +
+      (lb ? "上次备份：" + ago(lb) : "还没有备份过") + (stale ? "，建议每周导一次" : "") + '</p>');
+    h.push('<div class="btn-row">');
+    h.push('<button class="btn primary" data-act="exportFull">完整备份</button>');
+    h.push('<button class="btn" data-act="importData">导入备份</button>');
+    h.push('</div>');
+    h.push('<div class="btn-row" style="margin-top:8px">');
+    h.push('<button class="btn" data-act="exportMd">导出 Markdown</button>');
+    h.push('<button class="btn" data-act="print">打印 A5</button>');
+    h.push('</div>');
+    h.push('<p class="hint">完整备份是含照片的 .json 文件，换手机或换浏览器时用它恢复。</p>');
+    h.push('<div class="rowline" style="padding:0;margin-top:10px">');
+    h.push('<p class="hint" style="margin:0">' + syncSummary() + '</p>');
+    h.push('<button class="mini" data-act="syncSetup">云同步 ›</button>');
+    h.push('</div>');
+    if(location.protocol === "file:"){
+      h.push('<p class="warn" style="margin-top:10px">当前是本地文件方式打开：记录、照片、备份都能用，只有云同步不可用。数据存在这个浏览器里，别清缓存。</p>');
+    }
+    h.push('</div>');
+
+    return h.join("");
+  }
+
+  function viewQuarter(){
+    var y = curY(), qi = curQ()-1, q = quarterState(y, "Q"+(qi+1));
+    var h = [];
+
+    h.push('<div class="segs">');
+    for(var i=0;i<4;i++){
+      h.push('<button class="seg ' + (i===qi?"on":"") + '" data-act="qtab" data-q="' + i + '">Q' + (i+1) + '</button>');
+    }
+    h.push('</div>');
+
+    q.goals.forEach(function(g, i){
+      h.push('<div class="qcard">');
+      h.push('<div class="qnum">目标 ' + (i+1) + '</div>');
+      h.push('<input class="line" data-f="q.goals.' + i + '.title" value="' + esc(g.title) + '" placeholder="动词开头，一句话说清">');
+      for(var j=0;j<3;j++){
+        h.push('<div class="kr"><span class="krno">KR' + (j+1) + '</span>' +
+          '<input class="line" data-f="q.goals.' + i + '.krs.' + j + '" value="' + esc(g.krs[j] || "") + '" placeholder="怎么判断达成了"></div>');
+      }
+      h.push('<div class="meta"><label>每周投入</label><input class="line" data-f="q.goals.' + i + '.invest" value="' + esc(g.invest) + '" placeholder="3 次 × 40 分钟"></div>');
+      h.push('<div class="meta"><label>最大阻碍</label><input class="line" data-f="q.goals.' + i + '.block" value="' + esc(g.block) + '" placeholder="加班、起不来"></div>');
+      h.push('<div class="meta"><label>对策</label><input class="line" data-f="q.goals.' + i + '.fix" value="' + esc(g.fix) + '" placeholder="前一晚就准备好"></div>');
+      h.push('</div>');
+    });
+
+    h.push('<p class="hint" style="padding:0 4px 8px">每季只挑 3 个目标。多出来的写进纸上，别写进这里。</p>');
+
+    return h.join("");
+  }
+
+  function viewWeek(){
+    var mon = monday(cursor);
+    var wk = weekState(dkey(mon));
+    var n = weekChecked(mon);
+    var todayK = dkey(new Date());
+    var h = [];
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>本周三个关键任务</div>');
+    var ph = ["最重要的一件","第二件","第三件"];
+    for(var i=0;i<3;i++){
+      h.push('<div class="row"><span style="font-size:11px;color:var(--ink3);width:14px;flex:none">' + (i+1) + '</span>' +
+        '<input class="line" data-f="week.tasks.' + i + '" value="' + esc(wk.tasks[i]) + '" placeholder="' + ph[i] + '"></div>');
+    }
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot"></i>这周过得怎么样</div>');
+    h.push('<div class="wgrid">');
+    for(var d2=0; d2<7; d2++){
+      var dt = new Date(mon); dt.setDate(dt.getDate()+d2);
+      var k = dkey(dt);
+      var dd = state.days[k];
+      var on = !!(dd && dd.habits && Object.keys(dd.habits).some(function(x){ return dd.habits[x]; }));
+      h.push('<button class="wday ' + (k===todayK?"today":"") + '" data-act="dayJump" data-key="' + k + '">' +
+        '<span class="wd">' + WD[dt.getDay()].replace("周","") + '</span>' +
+        '<span class="wnum">' + dt.getDate() + '</span>' +
+        '<span class="wdot ' + (on?"on":"") + '"></span>' +
+        '</button>');
+    }
+    h.push('</div>');
+    h.push('<p class="hint">本周已打卡 ' + n + ' / 7 天，点格子跳到那一天</p>');
+    h.push('</div>');
+
+    h.push('<div class="card">');
+    h.push('<div class="card-h"><i class="dot g"></i>奖励阶梯</div>');
+    var tiers = [
+      {n:"小奖励", need:2, txt:"打卡 2 天"},
+      {n:"中奖励", need:5, txt:"打卡 5 天"},
+      {n:"大奖励", need:7, txt:"7 天全勤"}
+    ];
+    tiers.forEach(function(t){
+      var ok = n >= t.need;
+      h.push('<div class="tier ' + (ok?"ok":"") + '"><span>' + t.n + '　' + t.txt + '</span><span>' + (ok?"✓ 达标":"还差 " + (t.need-n) + " 天") + '</span></div>');
+    });
+    h.push('<input class="line" data-f="week.reward" value="' + esc(wk.reward) + '" placeholder="写下来：一杯手冲 / 一场电影" style="margin-top:12px">');
+    h.push('<button class="btn primary" data-act="claim" style="margin-top:12px"' + (n>=2?"":" disabled") + '>' + (wk.claimed ? "已兑现 · 点此撤销" : "标记为已兑现") + '</button>');
+    h.push('<p class="hint">奖励要具体、能立刻兑现。别写“休息一天”这种模糊的。</p>');
+    h.push('</div>');
+
+    return h.join("");
+  }
+
+  /* ---------- render ---------- */
+  function updateTop(){
+    var y = curY(), title = "", sub = "";
+    if(tab === "day"){
+      title = (cursor.getMonth()+1) + "月" + cursor.getDate() + "日";
+      sub = WD[cursor.getDay()] + " · " + y + " 年 · 第 " + isoWeek(cursor) + " 周";
+    } else if(tab === "week"){
+      var m = monday(cursor), e = new Date(m); e.setDate(e.getDate()+6);
+      title = (m.getMonth()+1) + "/" + m.getDate() + " – " + (e.getMonth()+1) + "/" + e.getDate();
+      sub = "第 " + isoWeek(cursor) + " 周";
+    } else if(tab === "quarter"){
+      title = y + " · Q" + curQ();
+      sub = ((curQ()-1)*3+1) + "–" + (curQ()*3) + " 月";
+    } else {
+      title = y + " 年";
+      sub = "年度九宫格";
+    }
+    $("#tbTitle").textContent = title;
+    $("#tbSub").textContent = sub;
+    $("#prevBtn").style.visibility = "visible";
+    $("#nextBtn").style.visibility = "visible";
+    $("#todayBtn").textContent = (tab === "year") ? "回今年" : "回今天";
+  }
+
+  function render(){
+    updateTop();
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(b){
+      b.classList.toggle("on", b.dataset.tab === tab);
+    });
+    var v = $("#view");
+    if(tab === "year") v.innerHTML = viewYear();
+    else if(tab === "quarter") v.innerHTML = viewQuarter();
+    else if(tab === "week") v.innerHTML = viewWeek();
+    else v.innerHTML = viewDay();
+    if(tab === "day") loadPhoto();
+    v.scrollTop = 0;
+  }
+
+  /* ---------- photo ---------- */
+  function loadPhoto(){
+    var img = $("#photoImg"), add = $("#photoAdd"), tools = $("#photoTools");
+    if(!img) return;
+    idbGet("photo:" + curKey()).then(function(src){
+      if(!img.isConnected) return;
+      if(src){
+        img.src = src; img.style.display = "block";
+        if(add) add.style.display = "none";
+        if(tools) tools.style.display = "block";
+      }
+    }).catch(function(){});
+  }
+
+  function compress(file){
+    return new Promise(function(res){
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function(){
+        var max = 1200, w = img.naturalWidth, hgt = img.naturalHeight;
+        if(Math.max(w, hgt) > max){
+          var r = max / Math.max(w, hgt);
+          w = Math.round(w * r); hgt = Math.round(hgt * r);
+        }
+        var c = document.createElement("canvas");
+        c.width = w; c.height = hgt;
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,hgt);
+        ctx.drawImage(img, 0, 0, w, hgt);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = function(){ res(null); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- calendar ---------- */
+  var calCur = new Date();
+
+  function openCal(){
+    calCur = new Date(cursor);
+    renderCal();
+    $("#cal").hidden = false;
+  }
+  function closeCal(){ $("#cal").hidden = true; }
+
+  function renderCal(){
+    var y = calCur.getFullYear(), m = calCur.getMonth();
+    $("#calTitle").textContent = y + " 年 " + (m+1) + " 月";
+    var start = (new Date(y, m, 1).getDay() + 6) % 7;
+    var days = new Date(y, m+1, 0).getDate();
+    var tk = dkey(new Date());
+    var html = "";
+    for(var i=0;i<start;i++) html += "<span></span>";
+    for(var d=1; d<=days; d++){
+      var key = y + "-" + pad(m+1) + "-" + pad(d);
+      var dd = state.days[key];
+      var has = !!(dd && ((dd.plan && dd.plan.some(Boolean)) || dd.done || dd.brk || dd.quote || dd.mood ||
+        (dd.habits && Object.keys(dd.habits).some(function(x){ return dd.habits[x]; }))));
+      var cls = "cal-d" + (key === curKey() ? " sel" : "") + (key === tk ? " td" : "");
+      html += '<button class="' + cls + '" data-act="calPick" data-key="' + key + '"><span>' + d + '</span>' + (has ? "<i></i>" : "") + '</button>';
+    }
+    $("#calGrid").innerHTML = html;
+  }
+
+  /* ---------- label panel ---------- */
+  function renderLabels(){
+    var h = "";
+    for(var i=0;i<8;i++){
+      h += '<input class="line" data-f="labels.' + i + '" maxlength="10" value="' + esc(state.gridLabels[i] || "") + '">';
+    }
+    $("#lblGrid").innerHTML = h;
+  }
+  function openLabels(){ renderLabels(); $("#labelPanel").hidden = false; }
+  function closeLabels(){ $("#labelPanel").hidden = true; }
+
+  /* ---------- backup ---------- */
+  function exportFull(){
+    var photos = {}, keys = Object.keys(state.days).filter(function(k){ return state.days[k].hasPhoto; });
+    var jobs = keys.map(function(k){
+      return idbGet("photo:" + k).then(function(v){ if(v) photos[k] = v; }).catch(function(){});
+    });
+    Promise.all(jobs).then(function(){
+      var payload = {app:"journal", v:1, exportedAt:new Date().toISOString(), data:state, photos:photos};
+      download("手帐完整备份-" + dkey(new Date()) + ".json", JSON.stringify(payload), "application/json");
+      state.meta.lastBackup = Date.now();
+      queueSave();
+      setTimeout(function(){ if(tab === "year") render(); }, 300);
+    });
+  }
+
+  /* 覆盖式恢复：备份文件和云端拉取共用 */
+  function applyBackup(p){
+    var s = (p && p.data) ? p.data : p;
+    if(!s || typeof s !== "object" || !s.years || !s.days){
+      return Promise.reject(new Error("不是手帐的备份文件"));
+    }
+    s.weeks = s.weeks || {}; s.meta = s.meta || {}; s.years = s.years || {};
+    s.habits = (s.habits && s.habits.length) ? s.habits : ["喝水","运动","阅读","早睡"];
+    if(!s.gridLabels || s.gridLabels.length !== 8) s.gridLabels = DEFAULT_LABELS.slice();
+    state = s;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+    var ps = (p && p.photos) ? p.photos : {};
+    var jobs = Object.keys(ps).map(function(k){
+      return idbSet("photo:" + k, ps[k]).catch(function(){ return null; });
+    });
+    return Promise.all(jobs).then(function(){
+      return {days: Object.keys(s.days).length, photos: Object.keys(ps).length};
+    });
+  }
+
+  function importFile(file){
+    var r = new FileReader();
+    r.onload = function(){
+      var p = null;
+      try { p = JSON.parse(r.result); } catch(e){ alert("文件读不出来，可能不是备份文件"); return; }
+      var s = (p && p.data) ? p.data : p;
+      var n = s && s.days ? Object.keys(s.days).length : 0;
+      if(!s || typeof s !== "object" || !s.years || !s.days){ alert("这不是手帐的备份文件"); return; }
+      if(!confirm("将用备份覆盖当前数据（" + n + " 天记录）。\n\n当前数据会被替换，确定继续吗？")) return;
+      applyBackup(p).then(function(r2){
+        alert("已恢复 " + r2.days + " 天记录、" + r2.photos + " 张照片");
+        render();
+      }).catch(function(e){ alert(e.message); });
+    };
+    r.readAsText(file);
+  }
+
+  /* ---------- cloud sync (GitHub Gist) ---------- */
+  var SKEY = "journal-sync";
+  var GIST_DESC = "手帐同步数据";
+
+  function syncCfg(){
+    var c = null;
+    try { c = JSON.parse(localStorage.getItem(SKEY) || "null"); } catch(e){ c = null; }
+    return c || {};
+  }
+  function setSyncCfg(c){
+    try { localStorage.setItem(SKEY, JSON.stringify(c)); } catch(e){}
+  }
+  function syncMsg(t){
+    var el = $("#syncMsg");
+    if(el) el.textContent = t;
+  }
+
+  function gh(method, path, body){
+    var c = syncCfg();
+    if(!c.token) return Promise.reject(new Error("请先填入访问令牌"));
+    return fetch("https://api.github.com" + path, {
+      method: method,
+      headers: {
+        "Authorization": "Bearer " + c.token,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
+      },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function(r){
+      return r.text().then(function(tx){
+        var j = null;
+        try { j = tx ? JSON.parse(tx) : null; } catch(e){}
+        if(!r.ok) throw new Error((j && j.message) || ("请求失败 HTTP " + r.status));
+        return j;
+      });
+    });
+  }
+
+  function collectPhotos(){
+    var keys = Object.keys(state.days).filter(function(k){ return state.days[k].hasPhoto; });
+    return Promise.all(keys.map(function(k){
+      return idbGet("photo:" + k).then(function(v){ return v ? [k, v] : null; }).catch(function(){ return null; });
+    })).then(function(rs){ return rs.filter(Boolean); });
+  }
+
+  function syncPush(msg){
+    var c = syncCfg();
+    if(!c.token){ alert("请先在同步设置里填入令牌"); return; }
+    msg("正在打包数据…");
+    collectPhotos().then(function(ps){
+      var map = {};
+      ps.forEach(function(x){ map[x[0]] = x[1]; });
+      var keys = Object.keys(map).sort().reverse();  /* 新照片在前，超限时丢最老的 */
+      var text = "", kept = 0;
+      for(var limit = keys.length; limit >= 0; limit--){
+        var photos = {};
+        for(var i=0;i<limit;i++) photos[keys[i]] = map[keys[i]];
+        text = JSON.stringify({app:"journal", v:1, exportedAt:new Date().toISOString(), data:state, photos:photos});
+        if(text.length <= 950000){ kept = limit; break; }
+      }
+      msg("正在上传 " + Math.round(text.length/1024) + " KB…");
+      var body = {description:GIST_DESC, files:{"journal.json":{content:text}}};
+      var p = c.gistId
+        ? gh("PATCH", "/gists/" + c.gistId, body)
+        : gh("POST", "/gists", Object.assign({public:false}, body));
+      return p.then(function(g){
+        var cfg = syncCfg();
+        cfg.gistId = g.id; cfg.gistUrl = g.html_url; cfg.lastPush = Date.now();
+        setSyncCfg(cfg);
+        state.meta = state.meta || {};
+        state.meta.lastBackup = Date.now();
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+        msg("");
+        var extra = (kept < keys.length) ? "\n\n照片较多，云端只保留了最近 " + kept + " 张；完整照片请用「完整备份」。" : "";
+        alert("推送成功。" + extra);
+        renderSyncPanel();
+        if(tab === "year") render();
+      });
+    }).catch(function(err){
+      msg("");
+      alert("推送失败：" + err.message +
+        (location.protocol === "file:" ? "\n\n本地直接打开的文件可能无法访问网络，同步请用线上地址。" : ""));
+      renderSyncPanel();
+    });
+  }
+
+  function syncPull(msg){
+    var c = syncCfg();
+    if(!c.token || !c.gistId){ alert("请先在同步设置里完成连接"); return; }
+    msg("正在读取云端…");
+    gh("GET", "/gists/" + c.gistId).then(function(g){
+      var f = g.files && g.files["journal.json"];
+      if(!f) throw new Error("云端没有 journal.json 文件");
+      if(f.content != null) return f.content;
+      if(f.raw_url) return fetch(f.raw_url).then(function(r){ return r.text(); });
+      throw new Error("读不到云端文件内容");
+    }).then(function(text){
+      var p = null;
+      try { p = JSON.parse(text); } catch(e){ throw new Error("云端数据不是有效的 JSON"); }
+      var s = (p && p.data) ? p.data : p;
+      var n = s && s.days ? Object.keys(s.days).length : 0;
+      msg("");
+      if(!confirm("用云端数据覆盖本机（云端 " + n + " 天记录）。\n\n若本机有还没推送的修改，请先「推送」再拉取。确定继续？")) return;
+      msg("正在写入…");
+      return applyBackup(p).then(function(r){
+        var cfg = syncCfg();
+        cfg.lastPull = Date.now();
+        setSyncCfg(cfg);
+        msg("");
+        alert("已拉取：" + r.days + " 天记录、" + r.photos + " 张照片");
+        render();
+        renderSyncPanel();
+      });
+    }).catch(function(err){
+      msg("");
+      alert("拉取失败：" + err.message);
+    });
+  }
+
+  function syncLink(){
+    var el = $("#tokInput");
+    var tok = el ? el.value.trim() : "";
+    if(!tok){ alert("先粘贴访问令牌"); return; }
+    var cfg = syncCfg();
+    cfg.token = tok;
+    setSyncCfg(cfg);
+    syncMsg("正在验证令牌…");
+    gh("GET", "/gists?per_page=100").then(function(list){
+      var found = null;
+      (Array.isArray(list) ? list : []).forEach(function(g){
+        if(g && g.description === GIST_DESC && g.files && g.files["journal.json"]) found = g;
+      });
+      var cfg2 = syncCfg();
+      if(found){
+        cfg2.gistId = found.id; cfg2.gistUrl = found.html_url;
+        setSyncCfg(cfg2);
+        syncMsg("");
+        alert("令牌有效，已连上云端手帐。\n\n如果这台设备是新的，现在就点「拉取」把数据取下来。");
+      } else {
+        delete cfg2.gistId; delete cfg2.gistUrl;
+        setSyncCfg(cfg2);
+        syncMsg("");
+        alert("令牌有效，云端还没有手帐数据。\n\n在这台设备上点「推送」，会自动创建云端空间。");
+      }
+      renderSyncPanel();
+    }).catch(function(err){
+      syncMsg("");
+      alert("验证失败：" + err.message);
+    });
+  }
+
+  function syncSummary(){
+    var c = syncCfg();
+    if(c.token && c.gistId){
+      return "云同步已连接 · 上次推送 " + (c.lastPush ? ago(c.lastPush) : "还没推过") +
+        (c.lastPull ? " · 上次拉取 " + ago(c.lastPull) : "");
+    }
+    return "只想自己记？不用管这一项，数据就存在这台设备上。";
+  }
+
+  function renderSyncPanel(){
+    var c = syncCfg();
+    var h = [];
+    h.push('<p class="hint" style="margin:0 0 6px">不设置也完全能用：固定在一台设备上记就行。要手机和电脑互相看到同一份，才需要下面这一步。</p>');
+    h.push('<div class="syncrow"><span>访问令牌</span><span>' + (c.token ? "已填写" : "未填写") + '</span></div>');
+    h.push('<div class="syncrow"><span>云端空间</span><span>' +
+      (c.gistId ? '<a href="' + esc(c.gistUrl || "https://gist.github.com/" + c.gistId) + '" target="_blank" rel="noreferrer">已连接 ↗</a>' : "未创建") +
+      '</span></div>');
+    if(c.lastPush) h.push('<div class="syncrow"><span>上次推送</span><span>' + ago(c.lastPush) + '</span></div>');
+    if(c.lastPull) h.push('<div class="syncrow"><span>上次拉取</span><span>' + ago(c.lastPull) + '</span></div>');
+    h.push('<input class="line" id="tokInput" type="password" autocomplete="off" placeholder="ghp_… 或 github_pat_…" value="' + esc(c.token || "") + '" style="margin-top:12px">');
+    h.push('<p class="hint">GitHub → Settings → Developer settings → Personal access tokens → Generate new token，只勾 gist 权限即可。令牌只存在本机浏览器，不会写进导出的备份。</p>');
+    h.push('<div class="btn-row" style="margin-top:10px">');
+    h.push('<button class="btn primary" data-act="syncLink">验证并连接</button>');
+    h.push('<button class="btn" data-act="syncPush"' + (c.token ? "" : " disabled") + '>推送</button>');
+    h.push('</div>');
+    h.push('<div class="btn-row" style="margin-top:8px">');
+    h.push('<button class="btn" data-act="syncPull"' + (c.gistId ? "" : " disabled") + '>拉取</button>');
+    h.push('<button class="btn" data-act="syncUnlink"' + (c.gistId ? "" : " disabled") + '>解除连接</button>');
+    h.push('</div>');
+    h.push('<p class="hint" id="syncMsg" style="min-height:16px;margin:10px 0 0;color:var(--accent)"></p>');
+    h.push('<p class="hint">在哪台设备写了，就点「推送」；换到另一台先点「拉取」。两台都写过后，顺序是先推后拉。</p>');
+    $("#syncBody").innerHTML = h.join("");
+  }
+  function openSync(){ renderSyncPanel(); $("#syncPanel").hidden = false; }
+  function closeSync(){ $("#syncPanel").hidden = true; if(tab === "year") render(); }
+
+  /* ---------- field binding ---------- */
+  function curCtx(){
+    return {
+      day: dayState(curKey()),
+      q: quarterState(curY(), "Q" + curQ()),
+      week: weekState(curWKey()),
+      year: yearState(curY()),
+      labels: state.gridLabels
+    };
+  }
+
+  function applyField(path, value){
+    var parts = path.split(".");
+    var ctx = curCtx();
+    var o = ctx[parts[0]];
+    if(!o) return;
+    for(var i=1; i<parts.length-1; i++){
+      o = o[parts[i]];
+      if(o == null) return;
+    }
+    o[parts[parts.length-1]] = value;
+    queueSave();
+  }
+
+  /* ---------- export ---------- */
+  function download(name, text, type){
+    var blob = new Blob([text], {type: type || "text/plain;charset=utf-8"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  function exportMd(){
+    var keys = Object.keys(state.days).sort();
+    var out = ["# 手帐记录", "", "导出时间：" + new Date().toLocaleString("zh-CN"), ""];
+    keys.forEach(function(k){
+      var d = state.days[k];
+      var any = (d.plan && d.plan.some(Boolean)) || d.done || d.brk || d.quote || d.mood ||
+        (d.habits && Object.keys(d.habits).some(function(x){ return d.habits[x]; }));
+      if(!any) return;
+      var dt = parseKey(k);
+      out.push("## " + k + " " + WD[dt.getDay()]);
+      if(d.plan && d.plan.some(Boolean)){
+        out.push("**今日计划**");
+        d.plan.forEach(function(p, i){ if(p) out.push("- " + (d.flags && d.flags[i] ? "[x] " : "[ ] ") + p); });
+      }
+      if(d.done) out.push("**干了/吃了/学了**\n\n" + d.done);
+      if(d.brk) out.push("**小突破**\n\n" + d.brk);
+      var hs = d.habits ? Object.keys(d.habits).filter(function(x){ return d.habits[x]; }) : [];
+      if(hs.length) out.push("**今日坚持**：" + hs.join("、"));
+      if(d.quote) out.push("**印象最深**：" + d.quote);
+      if(d.mood) out.push("**心情**：" + d.mood + "/5");
+      out.push("");
+    });
+    download("手帐-" + dkey(new Date()) + ".md", out.join("\n"), "text/markdown;charset=utf-8");
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-act]");
+    if(t){
+      var act = t.dataset.act;
+      if(act === "plan"){
+        var i = Number(t.dataset.i), d = dayState(curKey());
+        d.flags[i] = !d.flags[i];
+        t.classList.toggle("on", d.flags[i]);
+        var inp = t.parentElement.querySelector("input");
+        if(inp) inp.classList.toggle("done-txt", d.flags[i]);
+        queueSave();
+      } else if(act === "habit"){
+        var d2 = dayState(curKey()), nm = t.dataset.name;
+        d2.habits[nm] = !d2.habits[nm];
+        t.classList.toggle("on", !!d2.habits[nm]);
+        queueSave();
+      } else if(act === "habitAdd"){
+        var v = window.prompt("加一个每天想坚持的小事：", "");
+        if(v && v.trim()){
+          var name = v.trim().slice(0, 8);
+          if(state.habits.indexOf(name) < 0) state.habits.push(name);
+          queueSave(); render();
+        }
+      } else if(act === "mood"){
+        var d3 = dayState(curKey()), vv = Number(t.dataset.v);
+        d3.mood = (d3.mood === vv ? 0 : vv);
+        Array.prototype.forEach.call(document.querySelectorAll(".mood"), function(b){
+          b.classList.toggle("on", Number(b.dataset.v) === d3.mood);
+        });
+        queueSave();
+      } else if(act === "photoPick"){
+        $("#fileInput").click();
+      } else if(act === "photoDel"){
+        idbDel("photo:" + curKey()).then(function(){
+          dayState(curKey()).hasPhoto = false;
+          queueSave(); render();
+        }).catch(function(){});
+      } else if(act === "qtab"){
+        var qq = Number(t.dataset.q);
+        if(qq !== curQ() - 1){
+          cursor.setDate(1);
+          cursor.setMonth(qq * 3);
+          render();
+        }
+      } else if(act === "dayJump"){
+        cursor = parseKey(t.dataset.key);
+        tab = "day"; render();
+      } else if(act === "calPrev" || act === "calNext"){
+        calCur.setDate(1);
+        calCur.setMonth(calCur.getMonth() + (act === "calPrev" ? -1 : 1));
+        renderCal();
+      } else if(act === "calPick"){
+        cursor = parseKey(t.dataset.key);
+        closeCal(); render();
+      } else if(act === "claim"){
+        var w = weekState(curWKey());
+        w.claimed = !w.claimed;
+        queueSave(); render();
+      } else if(act === "exportFull"){
+        exportFull();
+      } else if(act === "importData"){
+        $("#importInput").click();
+      } else if(act === "pickYear"){
+        cursor = new Date(Number(t.dataset.y), cursor.getMonth(), 1);
+        cursor.setHours(0,0,0,0);
+        render();
+      } else if(act === "openLabels"){
+        openLabels();
+      } else if(act === "closeLabels"){
+        closeLabels(); render();
+      } else if(act === "resetLabels"){
+        if(confirm("把八个格子名称恢复成默认？格子里的内容不会动。")){
+          state.gridLabels = DEFAULT_LABELS.slice();
+          queueSave(); renderLabels(); render();
+        }
+      } else if(act === "exportMd"){
+        exportMd();
+      } else if(act === "print"){
+        window.print();
+      } else if(act === "syncSetup"){
+        openSync();
+      } else if(act === "closeSync"){
+        closeSync();
+      } else if(act === "syncLink"){
+        syncLink();
+      } else if(act === "syncPush"){
+        syncPush(syncMsg);
+      } else if(act === "syncPull"){
+        syncPull(syncMsg);
+      } else if(act === "syncUnlink"){
+        if(confirm("解除连接不会删除云端数据，也不会动本机记录。确定解除？")){
+          var cfg = syncCfg();
+          delete cfg.gistId; delete cfg.gistUrl; delete cfg.lastPush; delete cfg.lastPull;
+          setSyncCfg(cfg);
+          renderSyncPanel();
+        }
+      }
+      return;
+    }
+
+    var tb = e.target.closest(".tab");
+    if(tb){ tab = tb.dataset.tab; render(); }
+  });
+
+  document.addEventListener("input", function(e){
+    var f = e.target && e.target.dataset ? e.target.dataset.f : null;
+    if(!f) return;
+    applyField(f, e.target.value);
+  });
+
+  $("#fileInput").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    compress(f).then(function(dataUrl){
+      if(!dataUrl) return;
+      return idbSet("photo:" + curKey(), dataUrl).then(function(){
+        dayState(curKey()).hasPhoto = true;
+        queueSave();
+        loadPhoto();
+      });
+    }).catch(function(){}).then(function(){ e.target.value = ""; });
+  });
+
+  $("#prevBtn").addEventListener("click", function(){ shift(-1); });
+  $("#nextBtn").addEventListener("click", function(){ shift(1); });
+  $("#tbTitle").addEventListener("click", openCal);
+  $("#cal").addEventListener("click", function(e){ if(e.target.id === "cal") closeCal(); });
+  $("#labelPanel").addEventListener("click", function(e){ if(e.target.id === "labelPanel"){ closeLabels(); render(); } });
+  $("#syncPanel").addEventListener("click", function(e){ if(e.target.id === "syncPanel") closeSync(); });
+  $("#importInput").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(f) importFile(f);
+    e.target.value = "";
+  });
+  $("#todayBtn").addEventListener("click", function(){
+    cursor = new Date(); cursor.setHours(0,0,0,0); render();
+  });
+
+  function shift(dir){
+    if(tab === "day") cursor.setDate(cursor.getDate() + dir);
+    else if(tab === "week") cursor.setDate(cursor.getDate() + 7 * dir);
+    else if(tab === "quarter"){
+      cursor.setDate(1);
+      cursor.setMonth(cursor.getMonth() + 3 * dir);
+    } else if(tab === "year"){
+      cursor = new Date(cursor.getFullYear() + dir, cursor.getMonth(), 1);
+      cursor.setHours(0,0,0,0);
+    }
+    render();
+  }
+
+  window.addEventListener("beforeunload", function(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
